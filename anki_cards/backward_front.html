@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Title</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<body>
+<link rel="stylesheet" type="text/css" href="_collection.css">
+<script src="_scripts.js"></script>
+
+<div style="padding: 10%;">
+  <span id="backValue">
+    {{Back}}
+  </span>
+    <hr>
+    <span id='back' class="hideField">{{Back}}</span>
+    <span id="audio_placeholder"></span>
+    <div id="input_holder" style="width: 80%; display: inline-block;">
+      <input type="text" id="input_box" style="width: 80%;">
+    </div>
+    <script>
+      make_audio('backValue', 'audio_placeholder');
+
+      // Save input data to local storage
+      localStorage.setItem('inputValue',' ');
+      document.getElementById('input_box').addEventListener('input', (event) => {
+        localStorage.setItem('inputValue', event.target.value);
+      });      
+    </script>
+    
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Title</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<body>
+  <link rel="stylesheet" type="text/css" href="_collection.css">
+  <script src="_scripts.js"></script>
+  
+  <div style="padding: 10%;">
+    <span id='backValue'>{{Back}}</span>
+    <hr>
+      <span class="hideField" id="frontValue">
+        {{Front}}
+      </span>
+      <h4 id="correctAnswer"></h4>
+      <h3>&#x2193;</h3>
+      <h4 id="userInput"></h4>
+    <hr>
+    
+    
+    <span id="audio_placeholder"></span>
+    
+    <script>
+      make_audio('backValue', 'audio_placeholder',autoplay=false);
+      
+      // show correct answer
+      document.getElementById('correctAnswer').innerText = 
+                          document.getElementById('frontValue').innerText.trim();      
+      
+      // check answer
+      let text_correct = document.getElementById('frontValue').innerText.trim();
+      let text_input = localStorage.getItem('inputValue');
+      document.getElementById('userInput').innerHTML = compare_text(text_correct, text_input);                          
+
+    
+    </script>
+    <div id="inp">
+      <input>
+    </div>
+    </div>
+
+</body>
+</html>

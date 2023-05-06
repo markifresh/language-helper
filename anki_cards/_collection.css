@@ -1,0 +1,9 @@
+
+  .hideField {
+    display: none;
+  }
+  .highlight {
+    background-color: rgb(238, 162, 132);
+    margin: 5;
+    white-space: pre;
+  }

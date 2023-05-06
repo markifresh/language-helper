@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Title</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" type="text/css" href="test.css">
+</head>
+
+<body>
+  
+  <script src="_scripts.js"></script>
+  <link rel="stylesheet" type="text/css" href="_collection.css">
+
+  <div style="padding: 10%; ">
+    <div style="margin-bottom: 10%;">
+      {{Front}}
+      <hr>
+    </div>
+  
+    <div id="input_holder" style="width: 80%; display: inline-block;">
+      <input type="text" id="input_box" style="width: 80%;">
+    </div>
+    
+    
+    <script>     
+      // Save input data to local storage
+      localStorage.setItem('inputValue',' ');
+      document.getElementById('input_box').addEventListener('input', (event) => {
+        localStorage.setItem('inputValue', event.target.value);
+      });
+    </script>
+    
+  </div>
+  
+  
+  
+  
+  
+
+
+</body>
+</html>
