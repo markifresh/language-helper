@@ -1,22 +1,23 @@
 from pathlib import Path
-from bot_helper import send_question
+from gpt_helper import send_question
 
 
+# ask chat to define word Level optional?
 def create_request_fields(from_lang, to_lang, vocab_source, vocab_name, level='A1'):
     return {
-        'id': '(number in word)',
+        'id': '(id of word)',
         'article': '(article for nouns (la, el, and etc), leave it free if not noun)',
-        f'{from_lang} word': '',
-        f'{to_lang} word': f'(translation to {to_lang})',
-        f'useful sentence with {from_lang} word': '',
-        f'translation of sentence to {to_lang}': '',
+        'word': f'({from_lang} word)',
+        'word_translation': f'(translation to {to_lang})',
+        'sentence': f'(useful sentence with {from_lang} word)',
+        'sentence_translation': f'(translation of sentence to {to_lang})',
         'type':  '(type of word: noun, verb, ...)',
         'is_exception': '(is this word exception? F.e. female word but with masculine article, or irregular verb) ',
         'level': f'(level {level} for all)',
         'language': f'({to_lang.lower()} for all)',
         'categories':  '(coma+space separated list of categories to which this word can be related. Can be few '
                        'categories at the same time f.e. "weather, time")',
-        'source':  f'("{vocab_source}, {vocab_name}" for all)'
+        'source':  f'("{vocab_source},{vocab_name}" for all)'
         }
 
 
@@ -28,6 +29,7 @@ def create_request_message(from_lang, to_lang, vocab_source, vocab_name, level):
     return f'I learn {from_lang}, but you please speak English. Please make a list of dictionaries (json). ' \
            'Each dictionary should have keys: \n' \
            f'{fields_str} \n' \
+           '(your reply should be in json format)' \
            f'To fill this list please use the following list of {from_lang} words: \n'
 
 

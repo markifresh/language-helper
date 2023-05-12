@@ -30,5 +30,11 @@ def vocab_content_get(vocab_id, vocab_slug):
     script_tag = soup.find('script', string=re_compile(r'window\.SD_COMPONENT_DATA'))
     data_str = re_search(r'window\.SD_COMPONENT_DATA = (.+);', script_tag.text).group(1)
     data = json_loads(data_str)
-    return data.get('words')
+    words = data.get('words')
+    return [word['source'] for word in words]
 
+
+def vocab_content_by_name(vocab_name):
+    vocabs = vocabs_get()
+    vocab = [vocab for vocab in vocabs if vocab.get('name') == vocab_name][0]
+    return vocab_content_get(vocab['id'], vocab['slug'])

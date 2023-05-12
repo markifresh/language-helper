@@ -1,127 +1,138 @@
+import extra_functions
+import gpt_lang
 from pathlib import Path
-from json import load as j_load
-from json import dumps as j_dumps
-from time import sleep
-import concurrent.futures
+import gpt_lang
+import spanish_dict
+from traceback import format_exc as traceback_format_exc
 
 # to make as class WordsClient
 # as functions have a lot of parameters, which should be set with object creation
-
-def format_words_list(words: list, chunk_size=20):
-    words = [{'id': index, 'word': word} for index, word in enumerate(words)]
-    return [
-                words[i: i+chunk_size]
-                for i in range(0, len(words), chunk_size)
-           ]
+supported_from_lang = {}
+supported_to_lang = {}
 
 
-# file_prefix - filename, f.e. Spanish_vocab-name
-def make_file(file_prefix, offset_value):
-    file = Path(f'{file_prefix}.offset-{offset_value}.json')
-    if not file.exists():
-        file.touch()
-    return file
+class Vocabulary:
+    words_unmodified = []
+    words_modified = []
+
+    def __int__(self, from_lang, to_lang, source, name, level='A1', folder='results'):
+        self.from_lang = from_lang
+        self.to_lang = to_lang
+        self.source = source.replaca(' ', '_')
+        self.name = name
+        self.level = level
+        self.folder = folder
+        self.file_name = f'{self.from_lang}_{self.to_lang}.{self.source}_{self.name}'
+
+    def set_words_unmodified(self, words: list):
+        self.words_unmodified = words
+        return words
+
+    def set_words_modified(self, words: list):
+        self.words_modified = words
+        return words
+
+    def words_modify(self, words, max_workers=5):
+        words_chunked = extra_functions.format_words_list(words, 20)
+        gpt_requests_msg = gpt_lang.create_request_message(self.from_lang, self.to_lang, self.source, self.name, self.level)
+        gpt_requests = [gpt_requests_msg + str(words_list) for words_list in words_chunked]
+        # res = gpt_threads_run(gpt_requests, max_workers=5)
+
+        results = extra_functions.gpt_threads_run(words_chunked, max_workers=max_workers, file_name=self.file_name,
+                                                  folder_path=self.folder)
+        files = extra_functions.offsets_files_get(self.file_name, folder_path=self.folder)
+        # files = [result['file'] for result in results]
+
+        files_contents = [extra_functions.offset_file_data_get(file) for file in files]
+        files_contents = extra_functions.merge_lists(files_contents)
+        missing_words = extra_functions.check_missing(words_origin=words, words_modified=files_contents)
+        return {'success': not missing_words,
+                'thread_results': results,
+                'modified_words': files_contents,
+                'missing_words': missing_words,
+                'files': files}
+
+    def clean_up(self):
+        files = extra_functions.offsets_files_get(self.file_name, folder_path=self.folder)
+        res = [file.unlink() for file in files]
+
+    def words_export_to_csv(self, words: list):
+        return extra_functions.save_as_csv(words, self.file_name, folder_path=self.folder)
 
 
-def offsets_files_get(file_prefix: str, path: str):
-    offsets_path = Path(path)
-    return [offset_file for offset_file in offsets_path.glob(f'{file_prefix}.offset*')]
+def create_vocabulary(words, from_lang, to_lang, vocab_source, vocab_name, level='', folder='results', overwrite=False,
+                      create_new=False):
+    vocab_source = vocab_source.replace(' ', '_')
+    vocab_name = vocab_name.replace(' ', '_')
+    file_name = f'{from_lang}_{to_lang}.{vocab_source}_{vocab_name}'.lower()
 
+    current_files = extra_functions.find_matching_files(folder, file_name, '.csv')
+    index = len(current_files)
 
-def offsets_files_cleanup(file_prefix: str):
-    offset_files = offsets_files_get(file_prefix, '')
-    for file in offset_files:
-        file.unlink()
+    if not create_new and current_files:
+        csv_file = Path(folder)
+        index = '' if index < 2 else str(index - 1)
+        csv_file = csv_file.joinpath(f'{file_name}{index}.csv')
+        if csv_file.exists():
+            return {
+                'success': True,
+                'thread_results': [],
+                'modified_words': [],
+                'missing_words': [],
+                'file': csv_file
+            }
 
+    if len(current_files) > 1:
+        index = len(current_files) -1
 
-def offset_file_data_get(file: Path):
-    with file.open() as file_data:
-        json_data = j_load(file_data)
-    return json_data
+        if not overwrite:
+            index = len(current_files)
 
+    file_name = f'{file_name}{index}'
+    files = extra_functions.offsets_files_get(file_name, folder_path=folder)
+    if files:
+        files_contents = [extra_functions.offset_file_data_get(file) for file in files]
+        files_contents = extra_functions.merge_lists(files_contents)
+        missing_words = extra_functions.check_missing(words_origin=words, words_modified=files_contents)
+        words = [words[word_id] for word_id in missing_words]
 
-def merge_dicts(dicts_list: list):
-    merged_dict = {}
-    res = [merged_dict.update(dictionary) for dictionary in dicts_list]
-    return merged_dict
+    words_chunked = extra_functions.format_words_list(words, 20)
+    gpt_requests_msg = gpt_lang.create_request_message(from_lang, to_lang, vocab_source, vocab_name, level)
+    gpt_requests = [gpt_requests_msg + str(words_list) for words_list in words_chunked]
+    # res = gpt_threads_run(gpt_requests, max_workers=5)
 
+    results = extra_functions.gpt_threads_run(words_chunked, max_workers=5, file_name=file_name, folder_path=folder)
+    for result in results:
+        if result['success']:
+            offset_value = f"{result.get('modified')[0]['id']}_{result.get('modified')[-1]['id']}"
+            file = extra_functions.make_offset_file(file_name, offset_value, folder)
+            try:
+                extra_functions.write_data_to_json_file(file, data=result.get('modified'))
+            except Exception:
+                file.unlink()
+                raise Exception(traceback_format_exc())
 
-def merge_lists(lists: list):
-    merged_list = []
+    files = extra_functions.offsets_files_get(file_name, folder_path=folder)
+    #files = [result['file'] for result in results]
 
-    for one_list in lists:
-        merged_list += one_list
+    files_contents = [extra_functions.offset_file_data_get(file) for file in files]
+    files_contents = extra_functions.merge_lists(files_contents)
+    missing_words = extra_functions.check_missing(words_origin=words, words_modified=files_contents)
+    file = None
+    if not missing_words:
+        res = [file.unlink() for file in files]
+        file = extra_functions.save_as_csv(files_contents, file_name, folder_path=folder)
 
-    return merged_list
-
-
-def check_missing(words_origin: list, words_modified: list):
-    is_string = isinstance(words_origin[0], str)
-    if is_string:
-        ids_origin = range(0, len(words_origin))
-    else:
-        ids_origin = [word['id'] for word in words_origin]
-
-    ids_modified = [word['id'] for word in words_modified]
-
-    return [word_id for word_id in ids_origin if word_id not in ids_modified]
-
-
-"""
-    to check all missing words after creating, need to 
-        - load all json files
-        - merge them to variable
-        - run check_missing()
-"""
-
-
-def make_gpt_request(words: list):
-    sleep(5)
-    return words
-
-
-def write_data_to_file(file: Path, data):
-    data = j_dumps(data)
-    file.write_text(data)
-    return file
-
-
-def thread_func(words_list: list):
-    new_words = make_gpt_request(words_list)
-
-
-
-
-# words lists has structure [ [{},{}], [{},{}], ... ]
-def gpt_threads_run(words_lists: list, max_workers=5):
-    result_list = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(make_gpt_request, words_list) for words_list in words_lists]
-
-        # Retrieve results as they become available
-        for future in concurrent.futures.as_completed(futures):
-            result_list += future.result()
-
-    return result_list
-    # Merge all dictionaries into a single dictionary
-
-    # take chunk from pool till the pool is empty
-    # create file (offset number takes from words list, by id[-1] - len(words) or some other way
-    # return combined results
-
+    return {
+                'success': not missing_words,
+                'thread_results': results,
+                'modified_words': files_contents,
+                'missing_words': missing_words,
+                'file': file
+           }
 
 
 def test():
-    # get words
-    import spanish_dict
-    vocabs = spanish_dict.vocabs_get()
-    beginner = [vocab for vocab in vocabs if vocab.get('name') == 'Beginner'][0]
-    words = spanish_dict.vocab_content_get(beginner['id'], beginner['slug'])
-    words = [word['source'] for word in words]
-
-    # format words
-    words_lists = format_words_list(words, 20)
-
-
-
-    pass
+    words = spanish_dict.vocab_content_by_name('Beginner')
+    return create_vocabulary(words, from_lang="Spanish", to_lang="Russian", vocab_source="spanishDict",
+                             vocab_name="Beginner", level="A1", folder='results', create_new=True, overwrite=True)
