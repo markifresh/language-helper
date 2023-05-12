@@ -84,15 +84,20 @@ def thread_func(words_list: list, from_lang, to_lang):
 
 
 # words lists has structure [ [{},{}], [{},{}], ... ]
-def gpt_threads_run(words_lists: list, file_name, folder_path, max_workers=5):
+def threads_run(function, function_data: list = None, function_kwargs: list = None, max_workers=5, ):
     result_list = []
+    if function_kwargs is None:
+        function_kwargs = []
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(make_gpt_request, words_list) for words_list in words_lists]
+        futures = [executor.submit(function, data_chunk, *function_kwargs) for data_chunk in function_data]
 
         for future in concurrent.futures.as_completed(futures):
-            results = future.result()
-            result_list.append({'results': results,
-                                'success': results.get('unmodified') and results.get('modified')})
+            try:
+                result = future.result()
+                result_list.append({'result': result, 'error': None})
+            except Exception as e:
+                result_list.append({'result': None, 'error': e})
 
     return result_list
     # Merge all dictionaries into a single dictionary
@@ -120,9 +125,10 @@ def write_data_to_csv_file(file_name: str, data_list: list):
         writer.writerows(other_rows)
     return file
 
+
 def write_data_to_json_file(file: Path, data):
     data = j_dumps(data)
-    file.write_text(data)
+    file.write_text(data, encoding='UTF-8')
     return file
 
 

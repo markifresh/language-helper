@@ -10,7 +10,7 @@ load_dotenv()
 from os import getenv
 
 
-token = getenv('AI_KEY')
+token = getenv('OPENAI_TOKEN')
 chat_url = getenv('CHAT_URL')
 model = "gpt-3.5-turbo"
 
