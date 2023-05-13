@@ -117,7 +117,7 @@ def find_matching_files(directory, string, extension):
 def write_data_to_csv_file(file_name: str, data_list: list):
     file_name = file_name + '.csv' if '.csv' not in file_name else file_name
     file = Path(file_name)
-    with open(file.absolute(), mode="w") as new_file:
+    with open(file.absolute(), encoding="utf-8", mode="w", newline='') as new_file:
         writer = csv_writer(new_file)
         headers = data_list[0].keys()
         other_rows = [obj.values() for obj in data_list]
