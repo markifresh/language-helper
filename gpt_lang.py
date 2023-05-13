@@ -15,9 +15,9 @@ def create_request_fields(from_lang, to_lang, vocab_source, vocab_name, level='A
         'is_exception': '(is this word exception? F.e. female word but with masculine article, or irregular verb) ',
         'level': f'(level {level} for all)',
         'language': f'({to_lang.lower()} for all)',
-        'categories':  '(coma+space separated list of categories to which this word can be related. Can be few '
-                       'categories at the same time f.e. "weather, time")',
-        'source':  f'("{vocab_source},{vocab_name}" for all)'
+        'categories':  f'(in {to_lang.lower()} language: coma+space separated list of categories to which this word can'
+                       f' be related. Can be few categories at the same time f.e. "weather, time")',
+        'source':  f'("{vocab_source}, {vocab_name}" for all)'
         }
 
 
