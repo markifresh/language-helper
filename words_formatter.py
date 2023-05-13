@@ -68,12 +68,13 @@ def create_vocabulary(words, from_lang, to_lang, vocab_source, vocab_name, level
     file_name = f'{from_lang}_{to_lang}.{vocab_source}_{vocab_name}'.lower()
 
     current_files = extra_functions.find_matching_files(folder, file_name, '.csv')
-    index = len(current_files)
+    current_index = len(current_files) - 1
 
-    if not create_new and current_files:
+    if not create_new:
+        index = f'.{current_index}' if current_index > 0 else ''
+        file_name = f'{file_name}{index}'
         csv_file = Path(folder)
-        index = '' if index < 2 else str(index - 1)
-        csv_file = csv_file.joinpath(f'{file_name}{index}.csv')
+        csv_file = csv_file.joinpath(f'{file_name}.csv')
         if csv_file.exists():
             return {
                 'success': True,
@@ -83,13 +84,12 @@ def create_vocabulary(words, from_lang, to_lang, vocab_source, vocab_name, level
                 'file': csv_file
             }
 
-    if len(current_files) > 1:
-        index = len(current_files) -1
+    if not overwrite:
+        current_index += 1
 
-        if not overwrite:
-            index = len(current_files)
-
+    index = '' if current_index < 1 else f'.{current_index}'
     file_name = f'{file_name}{index}'
+
     files = extra_functions.offsets_files_get(file_name, folder_path=folder)
     if files:
         files_contents = [extra_functions.offset_file_data_get(file) for file in files]
