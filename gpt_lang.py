@@ -9,12 +9,13 @@ def create_request_fields(from_lang, to_lang, vocab_source, vocab_name, level='A
         'article': '(article for nouns (la, el, and etc), leave it free if not noun)',
         'word': f'({from_lang} word)',
         'word_translation': f'(translation to {to_lang})',
-        'sentence': f'(useful sentence with {from_lang} word)',
+        'sentence': f'(create sentence with {from_lang} word which you think can be useful, it is up to you)',
         'sentence_translation': f'(translation of sentence to {to_lang})',
         'type':  '(type of word: noun, verb, ...)',
         'is_exception': '(is this word exception? F.e. female word but with masculine article, or irregular verb) ',
         'level': f'(level {level} for all)',
-        'language': f'({to_lang.lower()} for all)',
+        'language': f'({from_lang.lower()} for all)',
+        'to_language': f'({to_lang.lower()} for all)',
         'categories':  f'(in {to_lang.lower()} language: coma+space separated list of categories to which this word can'
                        f' be related. Can be few categories at the same time f.e. "weather, time")',
         'source':  f'("{vocab_source}, {vocab_name}" for all)'

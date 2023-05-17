@@ -5,6 +5,7 @@ from time import sleep
 import concurrent.futures
 from csv import writer as csv_writer
 from csv import DictWriter as csv_DictWriter
+from csv import DictReader as csv_DictReader
 from traceback import format_exc as traceback_format_exc
 
 
@@ -16,7 +17,7 @@ def format_words_list(words: list, chunk_size=20):
     ]
 
 
-# file_prefix - filename, f.e. Spanish_vocab-name
+# file_prefix - filename, f.e. Spanish_vocab-vocabulary_name
 def make_offset_file(file_prefix, offset_value, folder_path: str):
     file = Path(folder_path)
     file = file.joinpath(f'{file_prefix}.offset-{offset_value}.json')
@@ -130,6 +131,15 @@ def write_data_to_json_file(file: Path, data):
     data = j_dumps(data)
     file.write_text(data, encoding='UTF-8')
     return file
+
+
+def load_data_from_csv_file(file_path: str):
+    data = []
+    with open(file_path, mode='r', encoding='utf-8') as file:
+        reader = csv_DictReader(file)
+        for row in reader:
+            data.append(row)
+    return data
 
 
 def save_as_csv(list_of_dicts, file_name: str, folder_path: str):
