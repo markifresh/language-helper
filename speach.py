@@ -1,14 +1,14 @@
 from os import getenv
 from dotenv import load_dotenv
 import requests
-
+from pathlib import Path
 
 load_dotenv()
 speach_key = getenv("MS_SPEACH")
 speach_region = getenv("MS_REGION")
 
 
-class MSAudio:
+class MSSpeach:
     def __init__(self, api_key=speach_key, region=speach_region):
         self.api_key = api_key
         self.token = None
@@ -34,7 +34,13 @@ class MSAudio:
         if result.status_code not in (200, ):
             raise Exception(result.status_code, result.text)
 
-        return result.json() if result.encoding == 'utf-8' else result.text
+        if result.encoding:
+            return result.json()
+
+        if result.apparent_encoding:
+            return result.text
+
+        return result.content
 
     def token_create(self):
         api_version = f'v{self.api_ver_major}.{self.api_ver_minor}'
@@ -46,10 +52,11 @@ class MSAudio:
         url = '/voices/list'
         return self.make_request('GET', url)
 
-    def tts(self, text):
+    def tts(self, text, format='audio-24khz-96kbitrate-mono-mp3', file_location=''):
+        extension = format.split('-')[-1]
         url = f'https://{self.region}.tts.speech.microsoft.com/cognitiveservices/v{self.api_ver_major}'
         headers = {
-                    'X-Microsoft-OutputFormat': 'riff-24khz-16bit-mono-pcm',
+                    'X-Microsoft-OutputFormat': format,
                     'Content-Type': 'application/ssml+xml',
                   }
 
@@ -59,12 +66,21 @@ class MSAudio:
                   f"{text}\r\n" + \
                   "</voice></speak>"
 
-        return self.make_request('POST', url, headers=headers, data=data)
-        # if response.status_code == 200:
-        #     with open("output.wav", "wb") as audio_file:
-        #         audio_file.write(response.content)
-        # else:
-        #     print("Error:", response.text)
+        file_content = self.make_request('POST', url, headers=headers, data=data)
+
+        if not file_content:
+            raise Exception('Failed to get audio content')
+
+        file = Path(file_location)
+        file = file.joinpath(f"{text}.{extension}")
+        file.write_bytes(file_content)
+        return file
+
+    def language_define(self):
+        pass
+
+    def stt(self):
+        pass
 
     def synthesis_submit(self):
         pass
