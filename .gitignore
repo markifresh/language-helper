@@ -3,3 +3,4 @@
 __pycache__/
 results/*
 *.mp3
+*.opus
