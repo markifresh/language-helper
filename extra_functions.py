@@ -9,6 +9,10 @@ from csv import DictReader as csv_DictReader
 from traceback import format_exc as traceback_format_exc
 
 
+def make_file_object(file, folder=''):
+    return file if isinstance(file, Path) else Path(folder, file)
+
+
 def format_words_list(words: list, chunk_size=20):
     words = [{'id': index, 'word': word} for index, word in enumerate(words)]
     return [
@@ -52,16 +56,25 @@ def merge_lists(lists: list):
     return merged_list
 
 
-def check_missing(words_origin: list, words_modified: list):
-    is_string = isinstance(words_origin[0], str)
-    if is_string:
-        ids_origin = list(range(0, len(words_origin)))
-    else:
-        ids_origin = [word['id'] for word in words_origin]
+# def check_missing(new_words: list, existing_words: list):
+#     is_string = isinstance(new_words[0], str)
+#     if is_string:
+#         ids_origin = list(range(0, len(new_words)))
+#     else:
+#         ids_origin = [word['id'] for word in new_words]
+#
+#     ids_modified = [word['id'] for word in existing_words]
+#
+#     return [word_id for word_id in ids_origin if word_id not in ids_modified]
 
-    ids_modified = [word['id'] for word in words_modified]
+def check_missing(new_words: list, existing_words: list):
+    if isinstance(new_words[0], dict):
+        new_words = [word['word'] for word in new_words]
 
-    return [word_id for word_id in ids_origin if word_id not in ids_modified]
+    if existing_words and isinstance(existing_words[0], dict):
+        existing_words = [word['word'] for word in existing_words]
+
+    return [word for word in new_words if word not in existing_words]
 
 
 """
@@ -133,24 +146,28 @@ def write_data_to_json_file(file: Path, data):
     return file
 
 
-def load_data_from_csv_file(file_path: str):
+def load_data_from_csv_file(file_path: str, folder=''):
+    file_obj = make_file_object(folder, file_path)
     data = []
-    with open(file_path, mode='r', encoding='utf-8') as file:
+    with open(str(file_obj), mode='r', encoding='utf-8') as file:
         reader = csv_DictReader(file)
         for row in reader:
             data.append(row)
     return data
 
 
-def save_as_csv(list_of_dicts, file_name: str, folder_path: str):
-    file = Path(folder_path)
-    if not file_name.endswith('.csv'):
-        file_name += '.csv'
-    file = file.joinpath(file_name)
+def save_as_csv(list_of_dicts, file_name: str, folder_path=''):
+    file = make_file_object(file_name, folder_path)
+    if file.suffix != '.csv':
+        file = file.with_suffix('.csv')
+
+    if file.exists():
+        file.unlink()
+
     file_path = str(file)
     keys = list_of_dicts[0].keys() if list_of_dicts else []
 
-    with open(file_path, 'w', newline='') as csvfile:
+    with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv_DictWriter(csvfile, fieldnames=keys)
         writer.writeheader()
         writer.writerows(list_of_dicts)
