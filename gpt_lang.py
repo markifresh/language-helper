@@ -6,18 +6,20 @@ from gpt_helper import send_question
 def create_request_fields(from_lang, to_lang, vocab_source, vocab_name, level='A1'):
     return {
         'id': '(id of word)',
-        'article': '(article for nouns (la, el, and etc), leave it free if not noun)',
-        'word': f'({from_lang} word)',
+        'word': f'({from_lang} word without article)',
+        'whole_word': f'(if article exists for this word - {from_lang} word with article, else {from_lang} word)',
         'word_translation': f'(translation to {to_lang})',
-        'sentence': f'(create sentence with {from_lang} word which you think can be useful, it is up to you)',
+        'sentence': f'(create sentence (which you think can be useful, it is up to you) '
+                    f'with {from_lang} word on {from_lang} (no need for translation here))',
         'sentence_translation': f'(translation of sentence to {to_lang})',
-        'type':  '(type of word: noun, verb, ...)',
-        'is_exception': '(is this word exception? F.e. female word but with masculine article, or irregular verb) ',
-        'level': f'(level {level} for all)',
-        'language': f'({from_lang.lower()} for all)',
-        'to_language': f'({to_lang.lower()} for all)',
-        'categories':  f'(in {to_lang.lower()} language: coma+space separated list of categories to which this word can'
-                       f' be related. Can be few categories at the same time f.e. "weather, time")',
+        'type':  f'(type of word: noun, verb, ..., but please use english language)',
+        'is_irregular': f'(is this word irregular according to {from_lang} grammar rules? (True or False))',
+        'level':   f'{level} if {level} else please define a level for this word/sentence from A1 to C2',
+        'language': f'(full language name of {from_lang.lower()} in lowercase in english)',
+        'to_language': f'(full language name of  {to_lang.lower()} in lowercase in english)',
+        'topics':  f'(coma+space separated list of topics to which this word can be related. '
+                   f'Can be few topics at the same time f.e. "weather, time".'
+                   f'Please use only english language for this field)',
         'source':  f'("{vocab_source}, {vocab_name}" for all)'
         }
 
