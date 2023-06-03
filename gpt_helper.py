@@ -3,6 +3,7 @@
 # from json import dumps as json_dumps
 # from json import loads as json_loads
 
+from time import sleep
 from datetime import datetime
 import requests
 from dotenv import load_dotenv
@@ -23,6 +24,10 @@ def make_request(method, url, data=None, headers=None, params=None):
     headers['Authorization'] = 'Bearer ' + token
 
     res = getattr(requests, method)(url, headers=headers, json=data, params=params)
+    if res.status_code == 429:
+        sleep(30)
+        res = getattr(requests, method)(url, headers=headers, json=data, params=params)
+
     success = res.status_code == 200
     data = res.json() if success else res.text
     return {
