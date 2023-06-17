@@ -1,3 +1,6 @@
+var audioPrefix = "ATTS ";
+var audioExtension = "mp3";
+
 function compare_text(text1, text2){
     let text = text1;
     let input = text2;
@@ -23,10 +26,11 @@ function compare_text(text1, text2){
 
 
 function create_audio(fileName, autoplay=true){
-  if (document.getElementsByTagName('audio').length != 0)
+  if (document.getElementById('wordAudio').length != 0)
     return null
   
   let newAudio = document.createElement("audio");
+  newAudio.Id = "wordAudio";
   newAudio.controls = true;
   newAudio.src = fileName;
   if (autoplay){
@@ -38,8 +42,8 @@ function create_audio(fileName, autoplay=true){
 
 function make_audio_filename(elementID) {
   let cont = document.getElementById(elementID);
-  let fileName = "ATTS " + cont.innerText.replace(/\u00A0/g, " ").trim();
-  fileName = fileName.endsWith('.') ? fileName + 'mp3' : fileName + '.mp3';
+  let fileName = audioPrefix + cont.innerText.replace(/\u00A0/g, " ").trim();
+  fileName = fileName.endsWith('.') ? fileName + audioExtension : fileName + '.' + audioExtension;
   return fileName;
 }
 
@@ -64,3 +68,74 @@ function make_input(){
   input_box.type = 'text';
   return input_box;
 }
+
+function appendSentenceDiv(sentence, word, elementID) {
+  let targetElement = document.createElement(elementID);
+  if (sentence && !targetElement.innerText){
+    let spanStyle = 'background-color: yellow';
+    const regex = new RegExp(`(${word})`, "gi");
+    const highlightedSentence = sentence.replace(regex, "<span style='" + spanStyle + "'>$1</span>");
+    const newDiv = document.createElement("div");
+    newDiv.innerHTML = highlightedSentence;
+    newDiv.style.color = 'darkgrey';
+    document.getElementById(elementID).appendChild(newDiv);
+  }}
+
+function toggleClass(elementID, className) {
+  document.getElementById(elementID).classList.toggle(className)  
+}
+
+function createPlayButton(parentElementId, audioSourceElement){
+  let playIconStr = '<svg xmlns="http://www.w3.org/2000/svg" height="25" viewBox="0 -960 960 960" width="25">' +
+                    '<path d="M320-203v-560l440 280-440 280Zm60-280Zm0 171 269-171-269-171v342Z"/>'+
+                  '</svg>';
+  let pauseIconStr = '<svg xmlns="http://www.w3.org/2000/svg" height="25" viewBox="0 -960 960 960" width="25">'+
+                    '<path d="M525-200v-560h235v560H525Zm-325 0v-560h235v560H200Zm385-60h115v-440H585v440Zm-325 '+
+                             '0h115v-440H260v440Zm0-440v440-440Zm325 0v440-440Z"/>' +
+                  '</svg>';
+  // create audio
+  let newAudio = document.createElement("audio");
+  newAudio.Id = "sentenceAudio";
+  newAudio.controls = false;
+  newAudio.autoplay = false;
+  newAudio.src = make_audio_filename(audioSourceElement);
+  
+  let newBtn = document.createElement('button');
+  newBtn.id = 'sentencePlayBtn';
+  newBtn.classList = 'btn btn-primary round-button';
+  newBtn.innerHTML =  playIconStr;
+  newBtn.style.margin = '0';
+  newBtn.style.padding = '0';
+  newBtn.style.display = 'contents';
+
+  let parentElemen = document.getElementById(parentElementId);
+  parentElemen.appendChild(newAudio);
+  parentElemen.appendChild(newBtn);
+
+  newBtn.addEventListener('click',function(e) {
+    newBtn.classList.toggle('is_playing');
+    if(newBtn.classList.contains('is_playing')){
+      newBtn.innerHTML =  pauseIconStr;
+      newAudio.play();
+    }
+    else{
+      newBtn.innerHTML =  playIconStr;
+      newAudio.pause();
+    }  
+  });
+
+  newAudio.addEventListener('ended', function(){
+    newBtn.classList.toggle('is_playing');
+    newBtn.innerHTML =  playIconStr;
+  })
+}
+
+// Test adding multiple source with different format and prefixes
+//   This example includes multiple <source> elements. The browser tries to load the first source 
+// element (Opus) if it is able to play it; if not it falls back to the second (Vorbis) 
+// and finally back to MP3:
+// <audio controls>
+//   <source src="foo.opus" type="audio/ogg; codecs=opus" />
+//   <source src="foo.ogg" type="audio/ogg; codecs=vorbis" />
+//   <source src="foo.mp3" type="audio/mpeg" />
+// </audio>

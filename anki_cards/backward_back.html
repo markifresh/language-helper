@@ -14,11 +14,21 @@
   
   <div style="padding: 10%;">
     <span id='backValue'>{{Back}}</span>
+    <span id="backSentenceHolder"></span>
+      <script>
+        appendSentenceDiv("{{BackSentence}}", "{{Back}}", "backSentenceHolder");
+      </script>
     <hr>
       <span class="hideField" id="frontValue">
         {{Front}}
       </span>
-      <h4 id="correctAnswer"></h4>
+      
+      
+      <div id="correctAnswer"></div>
+      <span id="frontSentenceHolder"></span>
+      <script>
+        appendSentenceDiv("{{FrontSentence}}", "{{Front}}", "frontSentenceHolder");
+      </script>
       <h3>&#x2193;</h3>
       <h4 id="userInput"></h4>
     <hr>
@@ -44,6 +54,9 @@
       <input>
     </div>
     </div>
+<script>
 
+}
+</script>
 </body>
 </html>

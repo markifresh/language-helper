@@ -16,12 +16,20 @@
   
   
   <div style="padding: 10%;">
-    {{Front}}
+		{{Front}}
+      <span id="frontSentenceHolder"></span>
+      <script>
+        appendSentenceDiv("{{FrontSentence}}", "{{Front}}", "frontSentenceHolder");
+      </script>
     <hr>
     <span class="hideField" id="backValue">
       {{Back}}
-    </span>
-    <h4 id="correctAnswer"></h4>
+    </span>   
+    <div id="correctAnswer"></div>
+    <span id="backSentenceHolder"></span>
+		<script>
+			appendSentenceDiv("{{BackSentence}}", "{{Back}}", "backSentenceHolder");
+		</script>
     <h3>&#x2193;</h3>
     <h4 id="userInput"></h4>
     <hr>
