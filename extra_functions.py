@@ -1,4 +1,5 @@
 from pathlib import Path
+from unicodedata import normalize as uni_normalize
 from json import load as j_load
 from json import dumps as j_dumps
 from time import sleep
@@ -9,8 +10,16 @@ from csv import DictReader as csv_DictReader
 from traceback import format_exc as traceback_format_exc
 
 
-def make_file_object(file, folder=''):
-    return file if isinstance(file, Path) else Path(folder, file)
+def make_file_object(file, folder='', with_exception=False):
+    file = file if isinstance(file, Path) else Path(folder, file)
+    if with_exception:
+        if not file.exists():
+            raise Exception(f'can not find file "{str(file)}"')
+    return file
+
+
+def words_standardize(words):
+    return [uni_normalize('NFKD', word).strip() for word in words]
 
 
 def format_words_list(words: list, chunk_size=20):
@@ -70,9 +79,11 @@ def merge_lists(lists: list):
 def check_missing(new_words: list, existing_words: list):
     if isinstance(new_words[0], dict):
         new_words = [word['word'] for word in new_words]
+    new_words = [word.lower().strip() for word in new_words]
 
     if existing_words and isinstance(existing_words[0], dict):
-        existing_words = [word['word'] for word in existing_words]
+        existing_words = [word['whole_word'].lower() for word in existing_words] + \
+                         [word['word'].lower() for word in existing_words]
 
     return [word for word in new_words if word not in existing_words]
 
@@ -147,7 +158,7 @@ def write_data_to_json_file(file: Path, data):
 
 
 def load_data_from_csv_file(file_path: str, folder=''):
-    file_obj = make_file_object(folder, file_path)
+    file_obj = make_file_object(folder, file_path, with_exception=True)
     data = []
     with open(str(file_obj), mode='r', encoding='utf-8') as file:
         reader = csv_DictReader(file)
